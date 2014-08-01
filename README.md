@@ -34,6 +34,7 @@ Example usage:
     //send notice
     client.SendNotice("user","Message");
     
+    //listen for channel messages
     irc.ChannelMessage += (c, u, m) =>
     {
         rtbOutput.AppendText(u + ":\t" + m + "\n");
