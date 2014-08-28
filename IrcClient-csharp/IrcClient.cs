@@ -124,109 +124,66 @@ namespace TechLifeForum
 
         #region Events
 
-        public event UpdateUserListEventDelegate UpdateUsers;
-        public event UserJoinedEventDelegate UserJoined;
-        public event UserLeftEventDelegate UserLeft;
-        public event UserNickChangeEventDelegate UserNickChange;
+        public event EventHandler<UpdateUsersEventArgs> UpdateUsers = delegate { };
+        public event EventHandler<UserJoinedEventArgs> UserJoined = delegate { };
+        public event EventHandler<UserLeftEventArgs> UserLeft = delegate { };
+        public event EventHandler<UserNickChangedEventArgs> UserNickChange = delegate { };
 
-        public event ChannelMesssageEventDelegate ChannelMessage;
-        public event NoticeMessageEventDelegate NoticeMessage;
-        public event PrivateMessageEventDelegate PrivateMessage;
-        public event ServerMessageEventDelegate ServerMessage;
+        public event EventHandler<ChannelMessageEventArgs> ChannelMessage = delegate { };
+        public event EventHandler<NoticeMessageEventArgs> NoticeMessage = delegate { };
+        public event EventHandler<PrivateMessageEventArgs> PrivateMessage = delegate { };
+        public event EventHandler<StringEventArgs> ServerMessage = delegate { };
 
-        public event NickTakenEventDelegate NickTaken;
+        public event EventHandler<StringEventArgs> NickTaken = delegate { };
 
-        public event ConnectedEventDelegate OnConnect;
-        //public event DisconnectedEventDelegate Disconnected;
+        public event EventHandler OnConnect = delegate { };
 
-        public event ExceptionThrownEventDelegate ExceptionThrown;
+        public event EventHandler<ExceptionEventArgs> ExceptionThrown = delegate { };
 
-        private void Fire_UpdateUsers(oUserList o)
+        private void Fire_UpdateUsers(UpdateUsersEventArgs o)
         {
-            //
-            // op.Post(x => Fire_UpdateUsers((oUserList)x), new oUserList(channel,users));
-            //
-
-            if (UpdateUsers != null) UpdateUsers(o.Channel, o.UserList);
+            op.Post(x => UpdateUsers(this, (UpdateUsersEventArgs)x), o);
         }
-        private void Fire_UserJoined(oUserJoined o)
+        private void Fire_UserJoined(UserJoinedEventArgs o)
         {
-            //
-            // op.Post(x => Fire_UserJoined((oUserJoined)x), new oUserJoined(channel,user));
-            //
+            op.Post(x => UserJoined(this, (UserJoinedEventArgs)x), o);
 
-            if (UserJoined != null) UserJoined(o.Channel, o.User);
         }
-        private void Fire_UserLeft(oUserLeft o)
+        private void Fire_UserLeft(UserLeftEventArgs o)
         {
-            //
-            // op.Post(x => Fire_UserLeft((oUserLeft)x), new oUserLeft(channel,user));
-            //
-
-            if (UserLeft != null) UserLeft(o.Channel, o.User);
+            op.Post(x => UserLeft(this, (UserLeftEventArgs)x), o);
         }
-        private void Fire_NickChanged(oUserNickChanged o)
+        private void Fire_NickChanged(UserNickChangedEventArgs o)
         {
-            //
-            // op.Post(x => Fire_NickChanged((oUserNickChanged)x), new oUserNickChanged(old,new));
-            //
-
-            if (UserNickChange != null) UserNickChange(o.Old, o.New);
+            op.Post(x => UserNickChange(this, (UserNickChangedEventArgs)x), o);
         }
-        private void Fire_ChannelMessage(oChannelMessage o)
+        private void Fire_ChannelMessage(ChannelMessageEventArgs o)
         {
-            //
-            // op.Post(x => Fire_ChannelMessage((oChannelMessage)x), new oChannelMessage(channel,user,message));
-            //
-
-            if (ChannelMessage != null) ChannelMessage(o.Channel, o.From, o.Message);
+            op.Post(x => ChannelMessage(this, (ChannelMessageEventArgs)x), o);
         }
-        private void Fire_NoticeMessage(oNoticeMessage o)
+        private void Fire_NoticeMessage(NoticeMessageEventArgs o)
         {
-            //
-            // op.Post(x => Fire_NoticeMessage((oNoticeMessage)x), new oNoticeMessage(user,message));
-            //
-
-            if (NoticeMessage != null) NoticeMessage(o.From, o.Message);
+            op.Post(x => NoticeMessage(this, (NoticeMessageEventArgs)x), o);
         }
-        private void Fire_PrivateMessage(oPrivateMessage o)
+        private void Fire_PrivateMessage(PrivateMessageEventArgs o)
         {
-            //
-            // op.Post(x => Fire_PrivateMessage((oPrivateMessage)x), new oPrivateMessage(user,message));
-            //
-
-            if (PrivateMessage != null) PrivateMessage(o.From, o.Message);
+            op.Post(x => PrivateMessage(this, (PrivateMessageEventArgs)x), o);
         }
         private void Fire_ServerMesssage(string s)
         {
-            //
-            // op.Post(x => Fire_ServerMesssage((string)x), message);
-            //
-
-            if (ServerMessage != null) ServerMessage(s);
+            op.Post(x => ServerMessage(this, (StringEventArgs)x), new StringEventArgs(s));
         }
         private void Fire_NickTaken(string s)
         {
-            //
-            // op.Post(x => Fire_NickTaken((string)x), nick);
-            //
-
-            if (NickTaken != null) NickTaken(s);
+            op.Post(x => NickTaken(this, (StringEventArgs)x), new StringEventArgs(s));
         }
         private void Fire_Connected()
         {
-            //
-            // op.Post((x)=>Fire_Connected(),null);
-            //
-            if (OnConnect != null) OnConnect();
+            op.Post((x) => OnConnect(this, null), null);
         }
         private void Fire_ExceptionThrown(Exception ex)
         {
-            //
-            // op.Post(x => OnExceptionThrown((Exception)x),e); <- code to throw the exception
-            //
-
-            if (ExceptionThrown != null) ExceptionThrown(ex);
+            op.Post(x => ExceptionThrown(this, (ExceptionEventArgs)x), new ExceptionEventArgs(ex));
         }
         #endregion
 
@@ -239,7 +196,6 @@ namespace TechLifeForum
             Thread t = new Thread(DoConnect);
             t.IsBackground = true;
             t.Start();
-            //DoConnect();
         }
         private void DoConnect()
         {
@@ -260,7 +216,7 @@ namespace TechLifeForum
             }
             catch (Exception ex)
             {
-                op.Post(x => Fire_ExceptionThrown((Exception)x), ex);
+                Fire_ExceptionThrown(ex);
             }
         }
         /// <summary>
@@ -275,8 +231,6 @@ namespace TechLifeForum
                     Send("QUIT Client Disconnected: http://tech.reboot.pro");
                 }
                 irc = null;
-                //if (Disconnected != null)  // TODO: shouldn't need this event,
-                //    Disconnected();        //       it's only fired her
             }
         }
         /// <summary>
@@ -363,20 +317,14 @@ namespace TechLifeForum
             {
                 case "001": // server welcome message, after this we can join
                     Send("MODE " + _nick + " +B");
-                    op.Post((x) => Fire_Connected(), null);    //TODO: this might not work
+                    Fire_Connected();    //TODO: this might not work
                     //if (OnConnect != null) OnConnect();
                     break;
                 case "353": // member list
-                    op.Post(x => Fire_UpdateUsers((oUserList)x), new oUserList(ircData[4], JoinArray(ircData, 5).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
-                    //if (UpdateUsers != null)
-                    //    UpdateUsers(ircData[4], JoinArray(ircData, 5).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                   Fire_UpdateUsers(new UpdateUsersEventArgs(ircData[4], JoinArray(ircData, 5).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
                     break;
                 case "433":
-                    op.Post(x => Fire_NickTaken((string)x), ircData[3]);
-                    //if (NickTaken != null)
-                    //{
-                    //    NickTaken(ircData[3]);
-                    //}
+                    Fire_NickTaken(ircData[3]);
 
                     if (ircData[3] == _altNick)
                     {
@@ -394,65 +342,35 @@ namespace TechLifeForum
                     }
                     break;
                 case "JOIN": // someone joined
-                    op.Post(x => Fire_UserJoined((oUserJoined)x), new oUserJoined(ircData[2], ircData[0].Substring(1, ircData[0].IndexOf("!") - 1)));
-                    //if (UserJoined != null)
-                    //    UserJoined(ircData[2], ircData[0].Substring(1, ircData[0].IndexOf("!") - 1));
-                    //Send("NAMES " + ircData[2]);
+                    Fire_UserJoined(new UserJoinedEventArgs(ircData[2], ircData[0].Substring(1, ircData[0].IndexOf("!") - 1)));
                     break;
                 case "NICK": // someone changed their nick
-                    op.Post(x => Fire_NickChanged((oUserNickChanged)x), new oUserNickChanged(ircData[0].Substring(1, ircData[0].IndexOf("!") - 1), JoinArray(ircData, 3)));
-                    //if (UserNickChange != null)
-                    //    UserNickChange(ircData[0].Substring(1, ircData[0].IndexOf("!") - 1), JoinArray(ircData, 3));
+                    Fire_NickChanged(new UserNickChangedEventArgs(ircData[0].Substring(1, ircData[0].IndexOf("!") - 1), JoinArray(ircData, 3)));
                     break;
                 case "NOTICE": // someone sent a notice
                     if (ircData[0].Contains("!"))
-                    {
-                        op.Post(x => Fire_NoticeMessage((oNoticeMessage)x), new oNoticeMessage(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
-                        //NoticeMessage(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1),
-                        //    JoinArray(ircData, 3));
-                    }
+                        Fire_NoticeMessage(new NoticeMessageEventArgs(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
                     else
-                    {
-                        op.Post(x => Fire_NoticeMessage((oNoticeMessage)x), new oNoticeMessage(_server, JoinArray(ircData, 3)));
-                    }
-                    //NoticeMessage(_server, JoinArray(ircData, 3));
+                        Fire_NoticeMessage(new NoticeMessageEventArgs(_server, JoinArray(ircData, 3)));
                     break;
                 case "PRIVMSG": // message was sent to the channel or as private
                     // if it's a private message
                     if (ircData[2].ToLower() == _nick.ToLower())
-                    {
-                        op.Post(x => Fire_PrivateMessage((oPrivateMessage)x), new oPrivateMessage(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
-                        //if (PrivateMessage != null)
-                        //{
-                        //    PrivateMessage(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1),
-                        //        JoinArray(ircData, 3));
-                        //}
-                    }
+                        Fire_PrivateMessage(new PrivateMessageEventArgs(ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
                     else
-                    {
-                        op.Post(x => Fire_ChannelMessage((oChannelMessage)x), new oChannelMessage(ircData[2], ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
-                        //if (ChannelMessage != null)
-                        //{
-                        //    ChannelMessage(ircData[2],
-                        //        ircData[0].Substring(1, ircData[0].IndexOf('!') - 1),
-                        //        JoinArray(ircData, 3));
-                        //}
-                    }
+                        Fire_ChannelMessage(new ChannelMessageEventArgs(ircData[2], ircData[0].Substring(1, ircData[0].IndexOf('!') - 1), JoinArray(ircData, 3)));
                     break;
                 case "PART":
                 case "QUIT":// someone left
-                    op.Post(x => Fire_UserLeft((oUserLeft)x), new oUserLeft(ircData[2], ircData[0].Substring(1, data.IndexOf("!") - 1)));
-                    //if (UserLeft != null)
-                    //    UserLeft(ircData[2], ircData[0].Substring(1, data.IndexOf("!") - 1));
+                    Fire_UserLeft(new UserLeftEventArgs(ircData[2], ircData[0].Substring(1, data.IndexOf("!") - 1)));
                     Send("NAMES " + ircData[2]);
                     break;
                 default:
                     // still using this while debugging
 
                     if (ircData.Length > 3)
-                        op.Post(x => Fire_ServerMesssage((string)x), JoinArray(ircData, 3));
+                        Fire_ServerMesssage(JoinArray(ircData, 3));
 
-                    //ServerMessage(JoinArray(ircData, 3));
                     break;
             }
 
@@ -497,83 +415,7 @@ namespace TechLifeForum
         }
         #endregion
 
-        #region Structs
 
-        public struct oUserList
-        {
-            public string Channel;
-            public string[] UserList;
-            public oUserList(string Channel, string[] UserList)
-            {
-                this.Channel = Channel;
-                this.UserList = UserList;
-            }
-        }
-        public struct oUserJoined
-        {
-            public string Channel;
-            public string User;
-            public oUserJoined(string Channel, string User)
-            {
-                this.Channel = Channel;
-                this.User = User;
-            }
-        }
-        public struct oUserLeft
-        {
-            public string Channel;
-            public string User;
-            public oUserLeft(string Channel, string User)
-            {
-                this.Channel = Channel;
-                this.User = User;
-            }
-        }
-
-        public struct oChannelMessage
-        {
-            public string Channel;
-            public string From;
-            public string Message;
-            public oChannelMessage(string Channel, string From, string Message)
-            {
-                this.Channel = Channel;
-                this.From = From;
-                this.Message = Message;
-            }
-        }
-        public struct oNoticeMessage
-        {
-            public string From;
-            public string Message;
-            public oNoticeMessage(string From, string Message)
-            {
-                this.From = From;
-                this.Message = Message;
-            }
-        }
-        public struct oPrivateMessage
-        {
-            public string From;
-            public string Message;
-            public oPrivateMessage(string From, string Message)
-            {
-                this.From = From;
-                this.Message = Message;
-            }
-        }
-        public struct oUserNickChanged
-        {
-            public string Old;
-            public string New;
-            public oUserNickChanged(string Old, string New)
-            {
-                this.Old = Old;
-                this.New = New;
-            }
-        }
-
-        #endregion
     }
 
 }

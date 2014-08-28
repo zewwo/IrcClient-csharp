@@ -128,9 +128,8 @@ namespace ClientDemo
 
         #region Event Listeners
 
-        void client_OnConnect()
+        void client_OnConnect(object sender, EventArgs e)
         {
-
             txtSend.Enabled = true;
             txtSend.Focus();
             btnSend.Enabled = true;
@@ -145,51 +144,51 @@ namespace ClientDemo
 
         }
 
-        void client_UserNickChange(string oldUser, string newUser)
+        void client_UserNickChange(object sender, UserNickChangedEventArgs e)
         {
-            lstUsers.Items[lstUsers.Items.IndexOf(oldUser)] = newUser;
+            lstUsers.Items[lstUsers.Items.IndexOf(e.Old)] = e.New;
         }
 
-        void client_UserLeft(string Channel, string User)
+        void client_UserLeft(object sender, UserLeftEventArgs e)
         {
-            lstUsers.Items.Remove(User);
+            lstUsers.Items.Remove(e.User);
         }
 
-        void client_UserJoined(string Channel, string User)
+        void client_UserJoined(object sender, UserJoinedEventArgs e)
         {
-            lstUsers.Items.Add(User);
+            lstUsers.Items.Add(e.User);
         }
 
-        void client_UpdateUsers(string Channel, string[] userlist)
+        void client_UpdateUsers(object sender, UpdateUsersEventArgs e)
         {
             lstUsers.Items.Clear();
-            lstUsers.Items.AddRange(userlist);
+            lstUsers.Items.AddRange(e.UserList);
             
         }
 
-        void client_ServerMessage(string message)
+        void client_ServerMessage(object sender, StringEventArgs e)
         {
-            Console.WriteLine(message);
+            Console.WriteLine(e.Result);
         }
 
-        void client_PrivateMessage(string User, string Message)
+        void client_PrivateMessage(object sender, PrivateMessageEventArgs e)
         {
-            AddToChatWindow("PM FROM " + User + ": " + Message);
+            AddToChatWindow("PM FROM " + e.From + ": " + e.Message);
         }
 
-        void client_NoticeMessage(string User, string Message)
+        void client_NoticeMessage(object sender,NoticeMessageEventArgs e)
         {
-            AddToChatWindow("NOTICE FROM " + User + ": " + Message);
+            AddToChatWindow("NOTICE FROM " + e.From + ": " + e.Message);
         }
 
-        void client_ExceptionThrown(Exception ex)
+        void client_ExceptionThrown(object sender, ExceptionEventArgs e)
         {
-            MessageBox.Show(ex.Message);
+            MessageBox.Show(e.Exception.Message);
         }
 
-        void client_ChannelMessage(string Channel, string User, string Message)
+        void client_ChannelMessage(object sender, ChannelMessageEventArgs e)
         {
-            AddToChatWindow(User + ": " + Message);
+            AddToChatWindow(e.From + ": " + e.Message);
         }
 
         #endregion
