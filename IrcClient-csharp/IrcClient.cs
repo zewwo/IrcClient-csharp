@@ -11,7 +11,7 @@ namespace TechLifeForum
     /// <summary>
     /// IRC Client class written at http://tech.reboot.pro
     /// </summary>
-    public class IrcClient
+    public class IrcClient : IDisposable
     {
         #region Variables
         // default server
@@ -277,6 +277,13 @@ namespace TechLifeForum
         {
             Send(message);
         }
+
+        public void Dispose()
+        {
+            stream.Dispose();
+            writer.Dispose();
+            reader.Dispose();
+        }
         #endregion
 
         #region PrivateMethods
@@ -416,6 +423,8 @@ namespace TechLifeForum
         #endregion
 
 
+
+        
     }
 
 }
