@@ -35,8 +35,8 @@ Example usage:
     client.SendNotice("user","Message");
     
     //listen for channel messages
-    irc.ChannelMessage += (c, u, m) =>
+    irc.ChannelMessage += (o,e) =>
     {
-        rtbOutput.AppendText(u + ":\t" + m + "\n");
+        rtbOutput.AppendText(e.User + ":\t" + e.Message + "\n");
         rtbOutput.ScrollToCaret();
     };
